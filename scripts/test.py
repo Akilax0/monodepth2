@@ -63,16 +63,12 @@ def test_simple(args):
     print("-> Loading model from ", model_path)
     encoder_path = os.path.join(model_path, "encoder.pth")
     depth_decoder_path = os.path.join(model_path, "depth.pth")
-    
-   
 
     # LOADING PRETRAINED MODEL
     print("   Loading pretrained encoder")
     encoder = networks.ResnetEncoder(18, False)
     loaded_dict_enc = torch.load(encoder_path, map_location=device)
 
-    #print(loaded_dict_enc)
-    
     # extract the height and width of image that this model was trained with
     feed_height = loaded_dict_enc['height']
     feed_width = loaded_dict_enc['width']
@@ -101,10 +97,10 @@ def test_simple(args):
         
         paths = glob.glob(os.path.join(args.image_path, '*.{}'.format(args.ext)))
         output_directory = args.image_path
-        print(output_directory)
-        output_directory = output_directory.split('/')[:-2]
-        output_directory.append("depth")
+        print(output_direcotry)
+	output_directory = output_directory.split("/")[:-1]
         output_directory = "/".join(output_directory)
+        # print(paths)
     else:
         raise Exception("Can not find args.image_path: {}".format(args.image_path))
         
@@ -118,7 +114,6 @@ def test_simple(args):
                 # don't try to predict disparity for a disparity image!
                 continue
 
-        
             # Load image and preprocess
             input_image = pil.open(image_path).convert('RGB')
             original_width, original_height = input_image.size
@@ -134,35 +129,16 @@ def test_simple(args):
             disp_resized = torch.nn.functional.interpolate(
                 disp, (original_height, original_width), mode="bilinear", align_corners=False)
 
-            # numpy file saves either depth or disparity based on stereo or monocular trained
-            
-            
-            # to mimic setip make the baseline adaptive 
-            # b = bKITTI/dmaxKITTI * dmax
-            # b KITTI  = 0.54
-            # d KITTI max = 80 
-            
-            # Calculate SCALE FACTOR fr pseudo RGB
-            d = 100 
-            MONO_SCALE_FACTOR = 0.54/80 * d
-            
             # Saving numpy file
-            output_name = os.path.splitext(os.path.basename(image_path))[0]
+            output_name = os.path.splitext(os.path.basename(image_path+"/depth"))[0]
             scaled_disp, depth = disp_to_depth(disp, 0.1, 100)
             if args.pred_metric_depth:
                 name_dest_npy = os.path.join(output_directory, "{}_depth.npy".format(output_name))
                 metric_depth = STEREO_SCALE_FACTOR * depth.cpu().numpy()
                 np.save(name_dest_npy, metric_depth)
             else:
-#                 name_dest_npy = os.p.join(output_directory, "{}_disp.npy".format(output_name))
-                name_dest_npy = os.path.join(output_directory, "{}_depth.npy".format(output_name))
-                pseudo_depth = MONO_SCALE_FACTOR * depth.cpu().numpy()
+                name_dest_npy = os.path.join(output_directory, "{}_disp.npy".format(output_name))
                 np.save(name_dest_npy, scaled_disp.cpu().numpy())
-            
-            
-#             disp_resized = torch.nn.functional.interpolate(
-#                 depth, (original_height, original_width), mode="bilinear", align_corners=False)
-
 
             # Saving colormapped depth image
             disp_resized_np = disp_resized.squeeze().cpu().numpy()
@@ -172,13 +148,11 @@ def test_simple(args):
             colormapped_im = (mapper.to_rgba(disp_resized_np)[:, :, :3] * 255).astype(np.uint8)
             im = pil.fromarray(colormapped_im)
 
-            name_dest_im = os.path.join(output_directory, "{}_disp_real.jpeg".format(output_name))
+            name_dest_im = os.path.join(output_directory, "{}_disp.jpeg".format(output_name))
             im.save(name_dest_im)
 
             print("   Processed {:d} of {:d} images - saved predictions to:".format(
                 idx + 1, len(paths)))
-            
-            print("   - {}".format(image_path))
             print("   - {}".format(name_dest_im))
             print("   - {}".format(name_dest_npy))
 
