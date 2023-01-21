@@ -262,6 +262,14 @@ class Trainer:
     def predict_poses(self, inputs, features):
         """Predict poses between input frames for monocular sequences.
         """
+
+
+        """
+        =============================================================
+        REPLACE  THE FUNCTION WITH POSES FROM ORBSLAM2
+        =============================================================
+        
+        """
         outputs = {}
         if self.num_pose_frames == 2:
             # In this setting, we compute the pose to each source frame via a
@@ -314,7 +322,7 @@ class Trainer:
                     outputs[("translation", 0, f_i)] = translation
                     outputs[("cam_T_cam", 0, f_i)] = transformation_from_parameters(
                         axisangle[:, i], translation[:, i])
-
+        print(outputs)
         return outputs
 
     def val(self):
