@@ -76,6 +76,7 @@ if __name__ == "__main__":
     path = arg_input.split('/')[:-1]
     path.append("data")
     path  = '/'.join(path)
+    
 
     dir_list = os.listdir(path)
     dir_list.sort()
@@ -96,7 +97,7 @@ if __name__ == "__main__":
     print(len(depth_dir_list)) 
 
     for i in range(len(timestamps)):
-        assoc_out = str(timestamps[i]) + ' data/' + str(dir_list[i]) +\
+        assoc_out = str(timestamps[i]) + ' data/' + str(dir_list[i]) +" "+\
                 str(timestamps[i]) + ' depth/' + str(depth_dir_list[i])
         f1.write(assoc_out+"\n")
 
