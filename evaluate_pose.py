@@ -49,6 +49,9 @@ def compute_ate(gtruth_xyz, pred_xyz_o):
 def evaluate(opt):
     """Evaluate odometry on the KITTI dataset
     """
+    print("PATH: ",opt.data_path)
+
+
     assert os.path.isdir(opt.load_weights_folder), \
         "Cannot find a folder at {}".format(opt.load_weights_folder)
 
@@ -63,6 +66,7 @@ def evaluate(opt):
 
     dataset = KITTIOdomDataset(opt.data_path, filenames, opt.height, opt.width,
                                [0, 1], 4, is_train=False)
+    print(len(dataset))
     dataloader = DataLoader(dataset, opt.batch_size, shuffle=False,
                             num_workers=opt.num_workers, pin_memory=True, drop_last=False)
 
@@ -88,6 +92,7 @@ def evaluate(opt):
 
     with torch.no_grad():
         for inputs in dataloader:
+    #        print(inputs.items())
             for key, ipt in inputs.items():
                 inputs[key] = ipt.cuda()
 
@@ -98,10 +103,14 @@ def evaluate(opt):
 
             pred_poses.append(
                 transformation_from_parameters(axisangle[:, 0], translation[:, 0]).cpu().numpy())
-
+    
+    #print(pred_poses)
     pred_poses = np.concatenate(pred_poses)
 
     gt_poses_path = os.path.join(opt.data_path, "poses", "{:02d}.txt".format(sequence_id))
+    print("PATH: ",gt_poses_path)
+
+
     gt_global_poses = np.loadtxt(gt_poses_path).reshape(-1, 3, 4)
     gt_global_poses = np.concatenate(
         (gt_global_poses, np.zeros((gt_global_poses.shape[0], 1, 4))), 1)
