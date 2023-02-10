@@ -58,8 +58,8 @@ def test_simple(args):
     if args.pred_metric_depth and "stereo" not in args.model_name:
         print("Warning: The --pred_metric_depth flag only makes sense for stereo-trained KITTI "
               "models. For mono-trained models, output depths will not in metric space.")
-    #download_model_if_doesnt_exist(args.model_name)
-    model_path = os.path.join(args.model_name)
+    download_model_if_doesnt_exist(args.model_name)
+    model_path = os.path.join("models",args.model_name)
     print("-> Loading model from ", model_path)
     encoder_path = os.path.join(model_path, "encoder.pth")
     depth_decoder_path = os.path.join(model_path, "depth.pth")
@@ -102,9 +102,10 @@ def test_simple(args):
         paths = glob.glob(os.path.join(args.image_path, '*.{}'.format(args.ext)))
         output_directory = args.image_path
         print(output_directory)
-        output_directory = output_directory.split('/')[:-2]
+        output_directory = output_directory.split('/')[:-1]
         output_directory.append("depth")
         output_directory = "/".join(output_directory)
+        print(output_directory)
     else:
         raise Exception("Can not find args.image_path: {}".format(args.image_path))
         
@@ -154,10 +155,10 @@ def test_simple(args):
                 metric_depth = STEREO_SCALE_FACTOR * depth.cpu().numpy()
                 np.save(name_dest_npy, metric_depth)
             else:
-#                 name_dest_npy = os.p.join(output_directory, "{}_disp.npy".format(output_name))
-                name_dest_npy = os.path.join(output_directory, "{}_depth.npy".format(output_name))
-                pseudo_depth = MONO_SCALE_FACTOR * depth.cpu().numpy()
+                name_dest_npy = os.path.join(output_directory, "{}_disp.npy".format(output_name))
                 np.save(name_dest_npy, scaled_disp.cpu().numpy())
+#                name_dest_npy = os.path.join(output_directory, "{}_depth.npy".format(output_name))
+#                pseudo_depth = MONO_SCALE_FACTOR * depth.cpu().numpy()
             
             
 #             disp_resized = torch.nn.functional.interpolate(
@@ -172,7 +173,7 @@ def test_simple(args):
             colormapped_im = (mapper.to_rgba(disp_resized_np)[:, :, :3] * 255).astype(np.uint8)
             im = pil.fromarray(colormapped_im)
 
-            name_dest_im = os.path.join(output_directory, "{}_disp_real.jpeg".format(output_name))
+            name_dest_im = os.path.join(output_directory, "{}.jpg".format(output_name))
             im.save(name_dest_im)
 
             print("   Processed {:d} of {:d} images - saved predictions to:".format(
