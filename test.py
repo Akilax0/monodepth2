@@ -154,9 +154,9 @@ def test_simple(args):
                 metric_depth = STEREO_SCALE_FACTOR * depth.cpu().numpy()
                 np.save(name_dest_npy, metric_depth)
             else:
-#                 name_dest_npy = os.p.join(output_directory, "{}_disp.npy".format(output_name))
-                name_dest_npy = os.path.join(output_directory, "{}_depth.npy".format(output_name))
-                pseudo_depth = MONO_SCALE_FACTOR * depth.cpu().numpy()
+                name_dest_npy = os.p.join(output_directory, "{}_disp.npy".format(output_name))
+                # name_dest_npy = os.path.join(output_directory, "{}_depth.npy".format(output_name))
+                # pseudo_depth = MONO_SCALE_FACTOR * depth.cpu().numpy()
                 np.save(name_dest_npy, scaled_disp.cpu().numpy())
             
             
@@ -171,6 +171,8 @@ def test_simple(args):
             mapper = cm.ScalarMappable(norm=normalizer, cmap='magma')
             colormapped_im = (mapper.to_rgba(disp_resized_np)[:, :, :3] * 255).astype(np.uint8)
             im = pil.fromarray(colormapped_im)
+
+            # keep track of the depths of each image 
 
             name_dest_im = os.path.join(output_directory, "{}_disp_real.jpeg".format(output_name))
             im.save(name_dest_im)

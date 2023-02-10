@@ -277,11 +277,11 @@ class Trainer:
             # separate forward pass through the pose network.
 
             # select what features the pose network takes as input
+            # by default seperate_resnet
             if self.opt.pose_model_type == "shared":
                 pose_feats = {f_i: features[f_i] for f_i in self.opt.frame_ids}
             else:
                 pose_feats = {f_i: inputs["color_aug", f_i, 0] for f_i in self.opt.frame_ids}
-
             for f_i in self.opt.frame_ids[1:]:
                 if f_i != "s":
                     # To maintain ordering we always pass frames in temporal order
@@ -303,6 +303,7 @@ class Trainer:
                     outputs[("cam_T_cam", 0, f_i)] = transformation_from_parameters(
                         axisangle[:, 0], translation[:, 0], invert=(f_i < 0))
 
+        # Else is not the default behaviour of training unless specified
         else:
             # Here we input all frames to the pose net (and predict all poses) together
             if self.opt.pose_model_type in ["separate_resnet", "posecnn"]:
@@ -323,6 +324,7 @@ class Trainer:
                     outputs[("translation", 0, f_i)] = translation
                     outputs[("cam_T_cam", 0, f_i)] = transformation_from_parameters(
                         axisangle[:, i], translation[:, i])
+
         print(outputs)
         return outputs
 
