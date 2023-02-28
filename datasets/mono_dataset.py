@@ -79,12 +79,13 @@ class MonoDataset(data.Dataset):
             self.saturation = 0.2
             self.hue = 0.1
 
+        # scaled images
         self.resize = {}
         for i in range(self.num_scales):
             s = 2 ** i
             self.resize[i] = transforms.Resize((self.height // s, self.width // s),
                                                interpolation=self.interp)
-
+        # Checking for velodyne file
         self.load_depth = self.check_depth()
 
     def preprocess(self, inputs, color_aug):
@@ -94,6 +95,7 @@ class MonoDataset(data.Dataset):
         images in this item. This ensures that all images input to the pose network receive the
         same augmentation.
         """
+        # print("Preprocessing inputs: ",inputs)
         for k in list(inputs):
             frame = inputs[k]
             if "color" in k:
@@ -107,7 +109,9 @@ class MonoDataset(data.Dataset):
                 n, im, i = k
                 inputs[(n, im, i)] = self.to_tensor(f)
                 inputs[(n + "_aug", im, i)] = self.to_tensor(color_aug(f))
-
+        
+        # print("Preprocessing outputs: ",inputs)
+        
     def __len__(self):
         return len(self.filenames)
 
@@ -141,6 +145,10 @@ class MonoDataset(data.Dataset):
         do_flip = self.is_train and random.random() > 0.5
 
         line = self.filenames[index].split()
+        # Example line 
+        # ['2011_10_03/2011_10_03_drive_0034_sync', '306', 'r']
+        # print("frame_idxs",self.frame_idxs)
+        # print("==================line : ",line)
         folder = line[0]
 
         if len(line) == 3:
@@ -196,6 +204,8 @@ class MonoDataset(data.Dataset):
             stereo_T[0, 3] = side_sign * baseline_sign * 0.1
 
             inputs["stereo_T"] = torch.from_numpy(stereo_T)
+            
+        # print("Final inputs",inputs)
 
         return inputs
 

@@ -62,6 +62,7 @@ class Trainer:
         self.models["depth"].to(self.device)
         self.parameters_to_train += list(self.models["depth"].parameters())
 
+        # False by default
         if self.use_pose_net:
             if self.opt.pose_model_type == "separate_resnet":
                 self.models["pose_encoder"] = networks.ResnetEncoder(
@@ -88,6 +89,7 @@ class Trainer:
             self.models["pose"].to(self.device)
             self.parameters_to_train += list(self.models["pose"].parameters())
 
+        # False by default
         if self.opt.predictive_mask:
             assert self.opt.disable_automasking, \
                 "When using predictive_mask, please disable automasking with --disable_automasking"
@@ -100,31 +102,39 @@ class Trainer:
             self.models["predictive_mask"].to(self.device)
             self.parameters_to_train += list(self.models["predictive_mask"].parameters())
 
+        # Check from here
         self.model_optimizer = optim.Adam(self.parameters_to_train, self.opt.learning_rate)
         self.model_lr_scheduler = optim.lr_scheduler.StepLR(
             self.model_optimizer, self.opt.scheduler_step_size, 0.1)
-
+        
+        # False by default
         if self.opt.load_weights_folder is not None:
             self.load_model()
-
+        
+        print("Options: ", self.opt)
         print("Training model named:\n  ", self.opt.model_name)
         print("Models and tensorboard events files are saved to:\n  ", self.opt.log_dir)
         print("Training is using:\n  ", self.device)
 
-        # data
+        # loading data
         datasets_dict = {"kitti": datasets.KITTIRAWDataset,
                          "kitti_odom": datasets.KITTIOdomDataset}
+        # "kitti" selected
         self.dataset = datasets_dict[self.opt.dataset]
 
         fpath = os.path.join(os.path.dirname(__file__), "splits", self.opt.split, "{}_files.txt")
+        print(fpath)
 
         train_filenames = readlines(fpath.format("train"))
         val_filenames = readlines(fpath.format("val"))
         img_ext = '.png' if self.opt.png else '.jpg'
 
+        # print(train_filenames)
+        
         num_train_samples = len(train_filenames)
         self.num_total_steps = num_train_samples // self.opt.batch_size * self.opt.num_epochs
 
+       # print("number of total steps", self.num_total_steps)
        # for i in train_filenames:
        #     print("File name: ",i)
             
@@ -139,11 +149,9 @@ class Trainer:
             train_dataset, self.opt.batch_size, True,
             num_workers=self.opt.num_workers, pin_memory=True, drop_last=True)
         
-        
         val_dataset = self.dataset(
             self.opt.data_path, val_filenames, self.opt.height, self.opt.width,
             self.opt.frame_ids, 4, is_train=False, img_ext=img_ext)
-        
         
         self.val_loader = DataLoader(
             val_dataset, self.opt.batch_size, True,
@@ -161,6 +169,8 @@ class Trainer:
 
         self.backproject_depth = {}
         self.project_3d = {}
+        
+        # scaling down 
         for scale in self.opt.scales:
             h = self.opt.height // (2 ** scale)
             w = self.opt.width // (2 ** scale)
@@ -178,8 +188,7 @@ class Trainer:
         print("There are {:d} training items and {:d} validation items\n".format(
             len(train_dataset), len(val_dataset)))
 
-        self.save_opts()
-
+        self.save_opts() 
     def set_train(self):
         """Convert all models to training mode
         """
@@ -198,8 +207,11 @@ class Trainer:
         self.epoch = 0
         self.step = 0
         self.start_time = time.time()
+        
+        # 20 epochs by default
         for self.epoch in range(self.opt.num_epochs):
             self.run_epoch()
+            # saves at each epoch as save_frequency ==1
             if (self.epoch + 1) % self.opt.save_frequency == 0:
                 self.save_model()
 
@@ -210,9 +222,8 @@ class Trainer:
 
         print("Training")
         self.set_train()
-
+        
         for batch_idx, inputs in enumerate(self.train_loader):
-          
 
             before_op_time = time.time()
 
@@ -243,7 +254,12 @@ class Trainer:
         """Pass a minibatch through the network and generate images and losses
         """
         for key, ipt in inputs.items():
+            print("===================new input item===================")
+            #print(key)
+            # print(ipt)
             inputs[key] = ipt.to(self.device)
+        
+        # By default pose_model_type = 'seperate_resnet'
         
         if self.opt.pose_model_type == "shared":
             # If we are using a shared encoder for both depth and pose (as advocated
@@ -264,6 +280,7 @@ class Trainer:
             outputs = self.models["depth"](features)
             # print("outputs: ",outputs)
 
+        # False by default
         if self.opt.predictive_mask:
             outputs["predictive_mask"] = self.models["predictive_mask"](features)
 
@@ -287,7 +304,7 @@ class Trainer:
         
         """
         outputs = {}
-        # print("Number of inputs: ",len(inputs))
+        # print("inputs to pose: ",inputs)
         if self.num_pose_frames == 2:
             # print("NUMBER OF POSE FRAMES ARE 2")
             # In this setting, we compute the pose to each source frame via a
@@ -300,8 +317,8 @@ class Trainer:
             else:
                 pose_feats = {f_i: inputs["color_aug", f_i, 0] for f_i in self.opt.frame_ids}
 
-           #      print("POSE FEATURES: ",pose_feats)
-           #  print("FRAME IDS: ",self.opt.frame_ids)
+                # print("POSE FEATURES: ",pose_feats)
+            # print("FRAME IDS: ",self.opt.frame_ids)
             
 
             for f_i in self.opt.frame_ids[1:]:
@@ -314,8 +331,10 @@ class Trainer:
                     else:
                         pose_inputs = [pose_feats[0], pose_feats[f_i]]
 
+                    # pose_model_type = seperate_resnet
                     if self.opt.pose_model_type == "separate_resnet":
                         pose_inputs = [self.models["pose_encoder"](torch.cat(pose_inputs, 1))]
+                        
                     elif self.opt.pose_model_type == "posecnn":
                         pose_inputs = torch.cat(pose_inputs, 1)
                         
@@ -346,6 +365,7 @@ class Trainer:
                 pose_inputs = [features[i] for i in self.opt.frame_ids if i != "s"]
 
             axisangle, translation = self.models["pose"](pose_inputs)
+        
 
             for i, f_i in enumerate(self.opt.frame_ids[1:]):
                 if f_i != "s":
@@ -354,7 +374,7 @@ class Trainer:
                     outputs[("cam_T_cam", 0, f_i)] = transformation_from_parameters(
                         axisangle[:, i], translation[:, i])
 
-        # print("pose_output: ",outputs)
+        print("pose_output: ",outputs)
 
         return outputs
 
