@@ -7,6 +7,7 @@ MONODEPTH_ROOT_DIR = '~/Documents/ntu/monodepth2'
 LOG_DIR = '~/Documents/ntu/tmp'
 DATASET = '/storage/datasets/kitty/kitti_data'
 
+
 def run_orbslam():
     # Running ORB_SLAM in docker container 
     print("Running ORB_SLAM2")
@@ -20,8 +21,7 @@ def run_orbslam():
             Examples/RGB-D/associations/fr1_xyz.txt;"'
             
     print(cmd)
-
-    #os.system(cmd)
+    os.system(cmd)
 
 def train_monodepth(pose_net):
     # Training monodepth2 model
@@ -35,8 +35,20 @@ def train_monodepth(pose_net):
             ' + DATASET
 
     print(cmd)
+    #os.system(cmd)
 
-    os.system(cmd)
+
+def test_monodepth():
+    # Test  monodepth2 model
+
+    print("Testing with Monodepth2")
+
+    cmd ='CUDA_VISIBLE_DEVICES=0 python ' + MONODEPTH_ROOT_DIR + '/test.py\
+            --model_name mono_model --log_dir ' + LOG_DIR +' --data_path\
+            ' + DATASET
+
+    print(cmd)
+    #os.system(cmd)
 
 if __name__ == "__main__":
 
@@ -53,6 +65,8 @@ if __name__ == "__main__":
         else:
             print("Using monodepth2 with calculated poses")
             train_monodepth(False)
+        
+        test_monodepth()
 
         run_orbslam()
     

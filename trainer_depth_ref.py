@@ -38,6 +38,9 @@ class Trainer:
         self.models = {}
         self.parameters_to_train = []
 
+        # poses file paths
+        self.poses_paths = {}
+
         self.device = torch.device("cpu" if self.opt.no_cuda else "cuda")
         #self.device = torch.device("cpu")
 
@@ -131,7 +134,13 @@ class Trainer:
         img_ext = '.png' if self.opt.png else '.jpg'
            
         for i in train_filenames:
-            print(i)
+            path = ""
+            path = path + self.opt.data_path +"/"+ i.split()[0]+"/poses.txt"
+            self.poses_paths[i] = path
+            #print(path)
+	    ##print(self.opt.data_path)
+
+        print(self.poses_paths)
         
         num_train_samples = len(train_filenames)
         self.num_total_steps = num_train_samples // self.opt.batch_size * self.opt.num_epochs
@@ -296,15 +305,11 @@ class Trainer:
     def predict_poses(self, inputs, features):
         """Predict poses between input frames for monocular sequences.
         """
-
-
         """
         =============================================================
         REPLACE  THE FUNCTION WITH POSES FROM ORBSLAM2
         =============================================================
-        
         """
-        
         
         outputs = {}
         # print("inputs to pose: ",inputs)
