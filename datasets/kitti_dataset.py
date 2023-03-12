@@ -64,9 +64,10 @@ class KITTIRAWDataset(KITTIDataset):
 
     def get_image_path(self, folder, frame_index, side):
         f_str = "{:010d}{}".format(frame_index, self.img_ext)
-        print("GET IMAGE PATH: ", f_str)
+        # print("GET IMAGE PATH: ", f_str)
         image_path = os.path.join(
             self.data_path, folder, "image_0{}/data".format(self.side_map[side]), f_str)
+        #print("image_path", image_path)
         return image_path
 
     def get_depth(self, folder, frame_index, side, do_flip):

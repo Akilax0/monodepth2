@@ -204,9 +204,17 @@ class MonoDataset(data.Dataset):
             stereo_T[0, 3] = side_sign * baseline_sign * 0.1
 
             inputs["stereo_T"] = torch.from_numpy(stereo_T)
-            
-        # print("Final inputs",inputs)
+			
+        # added pose information - akilax0
+        pose_file = line
+        # print("Pose file", pose_file)
+		
+        inputs[('pose',0,-1)] =torch.tensor([[1., 0., 0.,0.],[0., 1., 0.,0.],[0., 0., 1.,0.],[0., 0., 0.,1.]])
+        inputs[('pose',0,1)] =torch.tensor([[1., 0., 0.,0.],[0., 1., 0.,0.],[0., 0., 1.,0.],[0., 0., 0.,1.]])
 
+        #for key in inputs:
+        #    print(key)
+		#print("Final inputs",inputs)
         return inputs
 
     def get_color(self, folder, frame_index, side, do_flip):

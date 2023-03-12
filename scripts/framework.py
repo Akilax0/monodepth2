@@ -1,72 +1,134 @@
 import os
+import sys
+import glob
 
-USE_POSENET = False
+USE_POSENET = True
 ITERATIONS = 1
-DOCKER_CONTAINER = 'determined_nobel'
+DOCKER_CONTAINER = 'trusting volhard'
 MONODEPTH_ROOT_DIR = '~/Documents/ntu/monodepth2'
-LOG_DIR = '~/Documents/ntu/tmp'
+LOG_DIR = '~/Documents/ntu/results'
 DATASET = '/storage/datasets/kitty/kitti_data'
+TRAINED_MODEL_PATH = '~/Documents/ntu/monodepth2/models/mono_640x192'
+TEST_MODEL = '~/Documents/ntu/results/mono_model/models/weights_19'
+ASSOCIATON_PY = '~/Documents/ntu/monodepth2/scripts/associate.py'
 
 
-def run_orbslam():
+def run_orbslam(path):
     # Running ORB_SLAM in docker container 
-    print("Running ORB_SLAM2")
-    
-    #cmd = 'docker exec -it determined_nobel bash -c "cd ORB_SLAM2; ls"'
+        print("Running ORB_SLAM2")
 
-    cmd = 'docker exec -it ' + DOCKER_CONTAINER + ' bash -c "cd ORB_SLAM2;\
-            ./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt\
-            Examples/RGB-D/TUM1.yaml \
-            /storage/rgbd_dataset_freiburg1_xyz\
-            Examples/RGB-D/associations/fr1_xyz.txt;"'
-            
-    print(cmd)
-    os.system(cmd)
+        # Should happen for all sequences
+        # TODO: Automate iteration through all subdirs
 
-def train_monodepth(pose_net):
+        path = subdir.split('/')
+        seq_path = path[:-1]
+        seq_path.append("associate.txt")
+        path = "/".join(seq_path)
+        print("ORB_SLAM read path:",seq_path)
+
+        #cmd = 'docker exec -it determined_nobel bash -c "cd ORB_SLAM2; ls"'
+
+        cmd = 'docker exec -it ' + DOCKER_CONTAINER + ' bash -c "cd ORB_SLAM2;\
+                ./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt\
+                Examples/RGB-D/KITTI00-02.yaml \
+                '+path + ';"'
+
+#			/storage/rgbd_dataset_freiburg1_xyz\
+        #			Examples/RGB-D/associations/fr1_xyz.txt;"'
+
+        print("ORBSLAM command:",cmd)
+
+        os.system(cmd)
+
+        path = "/".join(seq_path[:-1])
+        print("Pose file read path:",path)
+
+        cmd1 = 'docker exec -it ' + DOCKER_CONTAINER + ' bash -c "cd ORB_SLAM2;\
+                cp pose.txt ' + path + ';"'
+
+        os.system(cmd1)
+
+
+def train_monodepth():
     # Training monodepth2 model
 
-    print("Training Monodepth2")
+        print("Training Monodepth2")
 
-    print("Use posenet?", pose_net)
+        cmd ='CUDA_VISIBLE_DEVICES=0 python ' +\
+                MONODEPTH_ROOT_DIR + '/train.py\
+                --model_name mono_model\
+                --log_dir ' + LOG_DIR +' --data_path\
+                ' + DATASET
 
-    cmd ='CUDA_VISIBLE_DEVICES=0 python ' + MONODEPTH_ROOT_DIR + '/train.py\
-            --model_name mono_model --log_dir ' + LOG_DIR +' --data_path\
-            ' + DATASET
-
-    print(cmd)
-    #os.system(cmd)
+        print("Train command :",cmd)
+        #os.system(cmd)
 
 
-def test_monodepth():
+def test_monodepth(pose_net):
     # Test  monodepth2 model
 
-    print("Testing with Monodepth2")
+        print("Testing with Monodepth2")
 
-    cmd ='CUDA_VISIBLE_DEVICES=0 python ' + MONODEPTH_ROOT_DIR + '/test.py\
-            --model_name mono_model --log_dir ' + LOG_DIR +' --data_path\
-            ' + DATASET
+        print("Use posenet?", pose_net)
 
-    print(cmd)
-    #os.system(cmd)
+        print("monodepth read path:",DATASET) 
+
+        if pose_net:
+            cmd ='python3 ' + MONODEPTH_ROOT_DIR + '/test.py\
+                    --model_name '+TRAINED_MODEL_PATH+' --image_path\
+                    ' + DATASET + ' --pred_metric_depth'
+        else:
+            cmd ='python3 '+ MONODEPTH_ROOT_DIR + '/test.py\
+                    --model_name '+TEST_MODEL+' --image_path'\
+                    + DATASET + ' --pred_metric_depth'
+
+        print("Test command:",cmd)
+        os.system(cmd)
+
+def eval_depth():
+    print("Evaluate Depth")
+
+def assoc(path):
+    print("Running association.py")
+
+    path = path.split("/")[:-1]
+    path.append("timestamps.txt")
+    path = "/".join(path)
+
+    cmd = 'python3 ' + ASSOCIATON_PY + ' -i ' + path 
+
+    print("Association input path: ",path)
+    os.system(cmd)
 
 if __name__ == "__main__":
 
     print(os.getcwd())
 
     for i in range(ITERATIONS):
-        print("Training step: ",i)  
+        print("======================Evaluation step: ",i)  
 
-        if USE_POSENET == False:
-            print("Using monodepth2 with pose network")
-            USE_POSENET = True
-            train_monodepth(True)
 
+        if i==0:
+            test_monodepth(True)
         else:
-            print("Using monodepth2 with calculated poses")
-            train_monodepth(False)
-        
-        test_monodepth()
+            test_monodepth(False)
 
-        run_orbslam()
-    
+        for subdir, dirs, files in os.walk(DATASET):
+            path = subdir.split('/')
+            # image_02 = 'l'
+            # image_03 = 'r'
+            if path[-1] == 'data' and ( path[-2]=="image_02" \
+                    or path[-2]=="image_03"):
+
+                path = "/".join(path)
+                print("Itearation input path: ",path)
+
+                #assoc(path)
+
+                #run_orbslam(path)
+
+        print("===================Training with ORBSLAM pose data :",i)
+        train_monodepth()
+
+        eval_depth()
+

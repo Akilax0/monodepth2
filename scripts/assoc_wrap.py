@@ -23,6 +23,7 @@ hour = gmt_time.tm_hour
 min = gmt_time.tm_min
 sec = gmt_time.tm_sec
 '''
+
 #time_str = str(year)+"-"+str(month)+"-"+str(day)+" "+str(hour)+":"+str(min)+\
  #     ":"+str(sec)+str(frac)[1:]
 

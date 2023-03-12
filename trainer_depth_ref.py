@@ -132,15 +132,15 @@ class Trainer:
         train_filenames = readlines(fpath.format("train"))
         val_filenames = readlines(fpath.format("val"))
         img_ext = '.png' if self.opt.png else '.jpg'
-           
+        '''          
         for i in train_filenames:
             path = ""
             path = path + self.opt.data_path +"/"+ i.split()[0]+"/poses.txt"
             self.poses_paths[i] = path
             #print(path)
 	    ##print(self.opt.data_path)
-
-        print(self.poses_paths)
+        '''
+        # print(self.poses_paths)
         
         num_train_samples = len(train_filenames)
         self.num_total_steps = num_train_samples // self.opt.batch_size * self.opt.num_epochs
@@ -155,6 +155,8 @@ class Trainer:
         self.train_loader = DataLoader(
             train_dataset, self.opt.batch_size, True,
             num_workers=self.opt.num_workers, pin_memory=True, drop_last=True)
+
+        print(self.train_loader)
         
         val_dataset = self.dataset(
             self.opt.data_path, val_filenames, self.opt.height, self.opt.width,
