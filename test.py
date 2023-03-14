@@ -100,13 +100,12 @@ def test_simple(args):
 	elif os.path.isdir(args.image_path):
 		# Searching folder for images
 
-		print("Image path",args.image_path)
+		print("Image path this:",args.image_path)
 		for subdir, dirs, files in os.walk(args.image_path):
 			path = subdir.split('/')
 			if path[-1] == 'data' and (path[-2] == "image_02" or path[-2]==\
 					"image_03"):
 				path = "/".join(path)
-				path += "/"
 
 				print("Test path: ", path)
 				output_directory = path 
@@ -115,7 +114,6 @@ def test_simple(args):
 				output_directory = output_directory[:-1]
 				output_directory.append("depth")
 				output_directory = "/".join(output_directory)
-				output_directory += "/"
 				print("Output Directory: ",output_directory)
 
 				# create depth directory	

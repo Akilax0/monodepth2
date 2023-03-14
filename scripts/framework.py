@@ -4,7 +4,7 @@ import glob
 
 USE_POSENET = True
 ITERATIONS = 1
-DOCKER_CONTAINER = 'trusting volhard'
+DOCKER_CONTAINER = 'trusting_volhard'
 MONODEPTH_ROOT_DIR = '~/Documents/ntu/monodepth2'
 LOG_DIR = '~/Documents/ntu/results'
 DATASET = '/storage/datasets/kitty/kitti_data'
@@ -22,6 +22,7 @@ def run_orbslam(path):
 
         path = subdir.split('/')
         seq_path = path[:-1]
+        sequence = "/".join(seq_path)
         seq_path.append("associate.txt")
         path = "/".join(seq_path)
         print("ORB_SLAM read path:",seq_path)
@@ -29,9 +30,8 @@ def run_orbslam(path):
         #cmd = 'docker exec -it determined_nobel bash -c "cd ORB_SLAM2; ls"'
 
         cmd = 'docker exec -it ' + DOCKER_CONTAINER + ' bash -c "cd ORB_SLAM2;\
-                ./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt\
-                Examples/RGB-D/KITTI00-02.yaml \
-                '+path + ';"'
+         ./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt\
+         Examples/RGB-D/KITTI00-02.yaml '+sequence+' ' + path + ';"'
 
 #			/storage/rgbd_dataset_freiburg1_xyz\
         #			Examples/RGB-D/associations/fr1_xyz.txt;"'
@@ -44,7 +44,7 @@ def run_orbslam(path):
         print("Pose file read path:",path)
 
         cmd1 = 'docker exec -it ' + DOCKER_CONTAINER + ' bash -c "cd ORB_SLAM2;\
-                cp pose.txt ' + path + ';"'
+                cp Pose.txt ' + path + ';"'
 
         os.system(cmd1)
 
@@ -83,7 +83,7 @@ def test_monodepth(pose_net):
                     + DATASET + ' --pred_metric_depth'
 
         print("Test command:",cmd)
-        os.system(cmd)
+        #os.system(cmd)
 
 def eval_depth():
     print("Evaluate Depth")
@@ -107,7 +107,6 @@ if __name__ == "__main__":
     for i in range(ITERATIONS):
         print("======================Evaluation step: ",i)  
 
-
         if i==0:
             test_monodepth(True)
         else:
@@ -125,7 +124,7 @@ if __name__ == "__main__":
 
                 #assoc(path)
 
-                #run_orbslam(path)
+                run_orbslam(path)
 
         print("===================Training with ORBSLAM pose data :",i)
         train_monodepth()
