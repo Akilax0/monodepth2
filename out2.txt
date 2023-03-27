@@ -1,0 +1,46 @@
+Options:  Namespace(avg_reprojection=False, batch_size=12, data_path='/storage/datasets/kitty/kitti_data/', dataset='kitti', disable_automasking=False, disable_median_scaling=False, disparity_smoothness=0.001, eval_eigen_to_benchmark=False, eval_mono=False, eval_out_dir=None, eval_split='eigen', eval_stereo=False, ext_disp_to_eval=None, frame_ids=[0, -1, 1], height=192, learning_rate=0.0001, load_weights_folder=None, log_dir='/home/e17154/Documents/ntu/results/', log_frequency=250, max_depth=100.0, min_depth=0.1, model_name='mono_model', models_to_load=['encoder', 'depth', 'pose_encoder', 'pose'], no_cuda=False, no_eval=False, no_ssim=False, num_epochs=20, num_layers=18, num_workers=12, png=False, pose_model_input='pairs', pose_model_type='separate_resnet', post_process=False, pred_depth_scale_factor=1, predictive_mask=False, save_frequency=1, save_pred_disps=False, scales=[0, 1, 2, 3], scheduler_step_size=15, split='eigen_zhou', use_stereo=False, v1_multiscale=False, weights_init='pretrained', width=640)
+Training model named:
+   mono_model
+Models and tensorboard events files are saved to:
+   /home/e17154/Documents/ntu/results/
+Training is using:
+   cuda
+/home/e17154/Documents/ntu/monodepth2/splits/eigen_zhou/{}_files.txt
+['2011_09_26/2011_09_26_drive_0022_sync', '473', 'r']
+['2011_09_26/2011_09_26_drive_0028_sync', '82', 'r']
+Using split:
+   eigen_zhou
+There are 39810 training items and 4424 validation items
+
+Training
+epoch   0 | batch      0 | examples/s:   1.9 | loss: 0.16205 | time elapsed: 00h00m23s | time left: 00h00m00s
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3127d57940>
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3099899ba8>
+epoch   0 | batch    250 | examples/s:   5.2 | loss: 0.14015 | time elapsed: 00h10m12s | time left: 45h00m36s
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3127d57940>
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3099899ba8>
+epoch   0 | batch    500 | examples/s:   5.2 | loss: 0.12949 | time elapsed: 00h19m56s | time left: 43h46m24s
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3127d57940>
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3099899ba8>
+epoch   0 | batch    750 | examples/s:   5.2 | loss: 0.13676 | time elapsed: 00h29m41s | time left: 43h17m03s
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3127d57940>
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3099899ba8>
+epoch   0 | batch   1000 | examples/s:   5.2 | loss: 0.11939 | time elapsed: 00h39m27s | time left: 42h58m14s
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3127d57940>
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3099899ba8>
+epoch   0 | batch   1250 | examples/s:   5.2 | loss: 0.14089 | time elapsed: 00h49m12s | time left: 42h42m28s
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3127d57940>
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3099899ba8>
+epoch   0 | batch   1500 | examples/s:   5.2 | loss: 0.11370 | time elapsed: 00h58m57s | time left: 42h28m52s
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3127d57940>
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3099899ba8>
+epoch   0 | batch   1750 | examples/s:   5.2 | loss: 0.10978 | time elapsed: 01h08m43s | time left: 42h16m33s
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3127d57940>
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3099899ba8>
+epoch   0 | batch   2000 | examples/s:   5.2 | loss: 0.11258 | time elapsed: 01h18m29s | time left: 42h04m59s
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3127d57940>
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3099899ba8>
+Training
+epoch   1 | batch    683 | examples/s:   5.2 | loss: 0.09862 | time elapsed: 02h36m37s | time left: 40h41m07s
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3127d57940>
+===============writer============ <tensorboardX.writer.SummaryWriter object at 0x7f3099899ba8>

@@ -38,16 +38,12 @@ class Trainer:
         self.models = {}
         self.parameters_to_train = []
 
-        # poses file paths
-        self.poses_paths = {}
-
         self.device = torch.device("cpu" if self.opt.no_cuda else "cuda")
         #self.device = torch.device("cpu")
 
         self.num_scales = len(self.opt.scales)
         self.num_input_frames = len(self.opt.frame_ids)
         self.num_pose_frames = 2 if self.opt.pose_model_input == "pairs" else self.num_input_frames
-        
 
         assert self.opt.frame_ids[0] == 0, "frame_ids must start with 0"
 
@@ -132,19 +128,16 @@ class Trainer:
         train_filenames = readlines(fpath.format("train"))
         val_filenames = readlines(fpath.format("val"))
         img_ext = '.png' if self.opt.png else '.jpg'
-        '''          
-        for i in train_filenames:
-            path = ""
-            path = path + self.opt.data_path +"/"+ i.split()[0]+"/poses.txt"
-            self.poses_paths[i] = path
-            #print(path)
-	    ##print(self.opt.data_path)
-        '''
-        # print(self.poses_paths)
+
+        # print(train_filenames)
         
         num_train_samples = len(train_filenames)
         self.num_total_steps = num_train_samples // self.opt.batch_size * self.opt.num_epochs
 
+       # print("number of total steps", self.num_total_steps)
+       # for i in train_filenames:
+       #     print("File name: ",i)
+            
         train_dataset = self.dataset(
             self.opt.data_path, train_filenames, self.opt.height, self.opt.width,
             self.opt.frame_ids, 4, is_train=True, img_ext=img_ext)
@@ -155,8 +148,6 @@ class Trainer:
         self.train_loader = DataLoader(
             train_dataset, self.opt.batch_size, True,
             num_workers=self.opt.num_workers, pin_memory=True, drop_last=True)
-
-        print(self.train_loader)
         
         val_dataset = self.dataset(
             self.opt.data_path, val_filenames, self.opt.height, self.opt.width,
@@ -235,10 +226,7 @@ class Trainer:
         for batch_idx, inputs in enumerate(self.train_loader):
 
             before_op_time = time.time()
-                
-#             for i in inputs:
-#                 print("INPUT: ", i)
-                
+
             outputs, losses = self.process_batch(inputs)
 
             self.model_optimizer.zero_grad()
@@ -266,9 +254,10 @@ class Trainer:
         """Pass a minibatch through the network and generate images and losses
         """
         for key, ipt in inputs.items():
-            # print("===================new input item===================")
-            #print("Key: ",key)
-            #print("IPT: ",ipt)
+            #print("===================new input item===================")
+            #print(key)
+            #print(inputs[key])
+            # print(ipt)
             inputs[key] = ipt.to(self.device)
         
         # By default pose_model_type = 'seperate_resnet'
@@ -307,12 +296,14 @@ class Trainer:
     def predict_poses(self, inputs, features):
         """Predict poses between input frames for monocular sequences.
         """
+
+
         """
         =============================================================
         REPLACE  THE FUNCTION WITH POSES FROM ORBSLAM2
         =============================================================
-        """
         
+        """
         outputs = {}
         # print("inputs to pose: ",inputs)
         if self.num_pose_frames == 2:
@@ -361,6 +352,12 @@ class Trainer:
                     outputs[("cam_T_cam", 0, f_i)] = transformation_from_parameters(
                         axisangle[:, 0], translation[:, 0], invert=(f_i < 0))
 
+                    #if ("pose",0,f_i) in inputs:
+                       # outputs[("cam_T_cam", 0, f_i)] = inputs[('pose',0,f_i)]
+
+                    #print("cam_T_cam : 0 ",f_i)
+                       # print(outputs[("cam_T_cam", 0 ,f_i)])
+
         # Default behaviour excludes else
         else:
             # Here we input all frames to the pose net (and predict all poses) together
@@ -383,8 +380,10 @@ class Trainer:
                     outputs[("translation", 0, f_i)] = translation
                     outputs[("cam_T_cam", 0, f_i)] = transformation_from_parameters(
                         axisangle[:, i], translation[:, i])
+                    print(f_i,end="")
+            print("")
 
-        # print("pose_output: ",outputs)
+  #      print("pose_output: ",outputs)
 
         return outputs
 
@@ -617,6 +616,7 @@ class Trainer:
         """Write an event to the tensorboard events file
         """
         writer = self.writers[mode]
+        print("===============writer============",writer)
         for l, v in losses.items():
             writer.add_scalar("{}".format(l), v, self.step)
 

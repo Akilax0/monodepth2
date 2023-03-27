@@ -255,7 +255,8 @@ class Trainer:
         """
         for key, ipt in inputs.items():
             print("===================new input item===================")
-            #print(key)
+            print(key)
+            print(inputs[key])
             # print(ipt)
             inputs[key] = ipt.to(self.device)
         
@@ -350,6 +351,8 @@ class Trainer:
                     # Invert the matrix if the frame id is negative
                     outputs[("cam_T_cam", 0, f_i)] = transformation_from_parameters(
                         axisangle[:, 0], translation[:, 0], invert=(f_i < 0))
+                   # print("cam_T_cam : 0 ",f_i)
+                   # print(outputs[("cam_T_cam", 0 ,f_i)])
 
         # Default behaviour excludes else
         else:
@@ -374,7 +377,7 @@ class Trainer:
                     outputs[("cam_T_cam", 0, f_i)] = transformation_from_parameters(
                         axisangle[:, i], translation[:, i])
 
-        print("pose_output: ",outputs)
+  #      print("pose_output: ",outputs)
 
         return outputs
 

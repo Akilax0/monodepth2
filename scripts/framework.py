@@ -2,8 +2,7 @@ import os
 import sys
 import glob
 
-USE_POSENET = True
-ITERATIONS = 1
+ITERATIONS = 5
 DOCKER_CONTAINER = 'trusting_volhard'
 MONODEPTH_ROOT_DIR = '~/Documents/ntu/monodepth2'
 LOG_DIR = '~/Documents/ntu/results'
@@ -102,6 +101,7 @@ def assoc(path):
 
 if __name__ == "__main__":
 
+    # Debug: current working directory
     print(os.getcwd())
 
     for i in range(ITERATIONS):
