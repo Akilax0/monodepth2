@@ -38,15 +38,16 @@ class MonoDataset(data.Dataset):
 		is_train
 		img_ext
 	"""
+
 	def __init__(self,
-			data_path,
-			filenames,
-			height,
-			width,
-			frame_idxs,
-			num_scales,
-			is_train=False,
-			img_ext='.jpg'):
+              data_path,
+              filenames,
+              height,
+              width,
+              frame_idxs,
+              num_scales,
+              is_train=False,
+              img_ext='.jpg'):
 		super(MonoDataset, self).__init__()
 
 		self.data_path = data_path
@@ -72,7 +73,7 @@ class MonoDataset(data.Dataset):
 			self.saturation = (0.8, 1.2)
 			self.hue = (-0.1, 0.1)
 			transforms.ColorJitter.get_params(
-					self.brightness, self.contrast, self.saturation, self.hue)
+                            self.brightness, self.contrast, self.saturation, self.hue)
 		except TypeError:
 			self.brightness = 0.2
 			self.contrast = 0.2
@@ -84,7 +85,7 @@ class MonoDataset(data.Dataset):
 		for i in range(self.num_scales):
 			s = 2 ** i
 			self.resize[i] = transforms.Resize((self.height // s, self.width // s),
-					interpolation=self.interp)
+                                      interpolation=self.interp)
 			# Checking for velodyne file
 		self.load_depth = self.check_depth()
 
@@ -145,7 +146,7 @@ class MonoDataset(data.Dataset):
 		do_flip = self.is_train and random.random() > 0.5
 
 		line = self.filenames[index].split()
-		# Example line 
+		# Example line
 		# ['2011_10_03/2011_10_03_drive_0034_sync', '306', 'r']
 		# print("frame_idxs",self.frame_idxs)
 		# print("==================line : ",line)
@@ -153,16 +154,15 @@ class MonoDataset(data.Dataset):
 		cam_T_cam = "/storage/datasets/kitty/kitti_data/"
 
 		cam_T_cam += line[0].split("/")[0]
-		
+
 		cam_T_cam += "/calib_cam_to_cam.txt"
-#		print("cam_T_cam: ",cam_T_cam)
+# print("cam_T_cam: ",cam_T_cam)
 
 		# open the sample file used
 		file = open(cam_T_cam)
 
 		# read the content of the file opened
 		cam = file.readlines()
-
 
 		if len(line) == 3:
 			frame_index = int(line[1])
@@ -174,45 +174,47 @@ class MonoDataset(data.Dataset):
 		else:
 			side = None
 
-		if(side=="l"):
-				cam = cam[19].split()
-#				print("left:" ,cam)
-		elif(side=="r"):
-				cam = cam[27].split()
-#				print("right:",cam)
-
+		if (side == "l"):
+			cam = cam[19].split()
+# print("left:" ,cam)
+		elif (side == "r"):
+			cam = cam[27].split()
+# print("right:",cam)
 
 		for i in self.frame_idxs:
 			if i == "s":
 				other_side = {"r": "l", "l": "r"}[side]
-				inputs[("color", i, -1)] = self.get_color(folder, frame_index, other_side, do_flip)
+				inputs[("color", i, -1)] = self.get_color(folder,
+                                              frame_index, other_side, do_flip)
 			else:
-				inputs[("color", i, -1)] = self.get_color(folder, frame_index + i, side, do_flip)
+				inputs[("color", i, -1)] = self.get_color(folder,
+												frame_index + i, side, do_flip)
 
                 # Width and height from kitti loaderwidth = 1242 height = 375
-                
+
                 # adjusting intrinsics to match each scale in the pyramid
 		for scale in range(self.num_scales):
 
 			# load intrinsic matrix instead of copying the average - akilax0
-						# P2/3 from cam_T_cam 
+			# P2/3 from cam_T_cam
 
-			K = np.array([[cam[1], cam[2],cam[3],0],[cam[4], cam[5],cam[6],0],[cam[7], cam[8],cam[9],0],[0, 0,0,1]],dtype=np.float32)
-		
-			width = 1242 
+			K = np.array([[cam[1], cam[2], cam[3], 0], [cam[4], cam[5], cam[6], 0], [
+			             cam[7], cam[8], cam[9], 0], [0, 0, 0, 1]], dtype=np.float32)
+
+			width = 1242
 			height = 375
 
-			# Normalizing 
+			# Normalizing
 			# Divide 1st row with width
 			K[0, :] /= width
-			# Divide 2nd row with height 
+			# Divide 2nd row with height
 			K[1, :] /= height
-			#print("K:",K)
+			# print("K:",K)
 
-			#K = self.K.copy()
-                        
-			#K[0, :] *= self.width // (2 ** scale)
-			#K[1, :] *= self.height // (2 ** scale)
+			# K = self.K.copy()
+
+			# K[0, :] *= self.width // (2 ** scale)
+			# K[1, :] *= self.height // (2 ** scale)
 
 			K[0, :] *= width // (2 ** scale)
 			K[1, :] *= height // (2 ** scale)
@@ -224,7 +226,7 @@ class MonoDataset(data.Dataset):
 
 		if do_color_aug:
 			color_aug = transforms.ColorJitter.get_params(
-					self.brightness, self.contrast, self.saturation, self.hue)
+						self.brightness, self.contrast, self.saturation, self.hue)
 		else:
 			color_aug = (lambda x: x)
 
@@ -247,55 +249,56 @@ class MonoDataset(data.Dataset):
 
 			inputs["stereo_T"] = torch.from_numpy(stereo_T)
 
+		# added pose information - akilax0
+		# read pose file
 
-                # added pose information - akilax0
+		pose_file = "/storage/datasets/kitty/kitti_data/"
 
-                # read pose file
-                
-                pose_file = "/storage/datasets/kitty/kitti_data/"
+		pose_file += line[0]
+		pose_file += "/"
 
-                pose_file += line[0]
-                pose_file += "/"
+		if line[2] == "r":
+			pose_file += "image_03/Pose.txt"
+		elif line[2] == "l":
+			pose_file += "image_02/Pose.txt"
 
-                if line[2] == "r":
-                        pose_file += "image_03/Pose.txt"
-                elif line[2] == "l":
-                        pose_file += "image_02/Pose.txt"
+		# print("Pose file", pose_file)
 
-                #print("Pose file", pose_file)
+		# open the sample file used
+		file = open(pose_file)
 
+		# read the content of the file opened
+		poses = file.readlines()
+		# print(len(poses))
 
-                # open the sample file used
-                file = open(pose_file)
+		if (len(poses) < int(line[1])+1):
+			print("No forward")
+		else:
+			# print("Poses 0 1")
+			r1, r2, r3, t1, r4, r5, r6, t2, r7, r8, r9, t3 = list(
+				map(float, poses[int(line[1])+1].split(' ')))
 
-                # read the content of the file opened
-                poses = file.readlines()
-                #print(len(poses))
+			pose1 = torch.tensor([[r1, r2, r3, t1], [r4, r5, r6, t2], [
+									r7, r8, r9, t3], [0., 0., 0., 1.]])
+			# inputs[('pose',0,1)] = pose1
 
-                if(len(poses)< int(line[1])+1):
-                        print("No forward")
-                else:
-                        #print("Poses 0 1")
-                        r1,r2,r3,t1,r4,r5,r6,t2,r7,r8,r9,t3 = list(map(float, poses[int(line[1])+1].split(' ')))
+			# print(pose1)
 
-                        pose1 = torch.tensor([[r1, r2 ,r3 ,t1],[r4,r5 ,r6 ,t2],[r7, r8,r9 ,t3],[0., 0., 0.,1.]])
-                        #inputs[('pose',0,1)] = pose1
+		if int(line[1])-1 < 0:
+			print("No back")
+		else:
+			# print("Poses 0 -1")
+			r1, r2, r3, t1, r4, r5, r6, t2, r7, r8, r9, t3 = list(
+				map(float, poses[int(line[1])].split(' ')))
 
-                        #print(pose1)
+			pose2 = torch.tensor([[r1, r2, r3, t1], [r4, r5, r6, t2], [
+									r7, r8, r9, t3], [0., 0., 0., 1.]])
+			pose2 = torch.inverse(pose2)
+			# print(pose2)
 
-                if int(line[1])-1 < 0:
-                        print("No back")
-                else:
-                        #print("Poses 0 -1")
-                        r1,r2,r3,t1,r4,r5,r6,t2,r7,r8,r9,t3 = list(map(float,poses[int(line[1])].split(' ')))
+			# inputs[('pose',0,-1)] = pose2
 
-                        pose2 = torch.tensor([[r1, r2 ,r3 ,t1],[r4,r5 ,r6 ,t2],[r7, r8,r9 ,t3],[0., 0., 0.,1.]])
-                        pose2 = torch.inverse(pose2)
-                        #print(pose2)
-
-                        #inputs[('pose',0,-1)] = pose2 
-                
-                return inputs
+		return inputs
 
 	def get_color(self, folder, frame_index, side, do_flip):
 		raise NotImplementedError
