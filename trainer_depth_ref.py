@@ -162,7 +162,7 @@ class Trainer:
         self.writers = {}
         for mode in ["train", "val"]:
             self.writers[mode] = SummaryWriter(os.path.join(self.log_path, mode))
-
+        print("Summary writer path: ",os.path.join(self.log_path, mode))
         if not self.opt.no_ssim:
             self.ssim = SSIM()
             self.ssim.to(self.device)
@@ -297,7 +297,6 @@ class Trainer:
         """Predict poses between input frames for monocular sequences.
         """
 
-
         """
         =============================================================
         REPLACE  THE FUNCTION WITH POSES FROM ORBSLAM2
@@ -340,20 +339,20 @@ class Trainer:
                         pose_inputs = torch.cat(pose_inputs, 1)
                         
                     # print("POSE INPUTS: ",pose_inputs)
-                    axisangle, translation = self.models["pose"](pose_inputs)
-                    outputs[("axisangle", 0, f_i)] = axisangle
-                    outputs[("translation", 0, f_i)] = translation
+                    #axisangle, translation = self.models["pose"](pose_inputs)
+                    #outputs[("axisangle", 0, f_i)] = axisangle
+                    #outputs[("translation", 0, f_i)] = translation
                     
                     
                     # print("axis angle: " , axisangle)
                     # print("translation: ", translation)
 
                     # Invert the matrix if the frame id is negative
-                    outputs[("cam_T_cam", 0, f_i)] = transformation_from_parameters(
-                        axisangle[:, 0], translation[:, 0], invert=(f_i < 0))
+                    #outputs[("cam_T_cam", 0, f_i)] = transformation_from_parameters(
+                    #    axisangle[:, 0], translation[:, 0], invert=(f_i < 0))
 
-                    #if ("pose",0,f_i) in inputs:
-                       # outputs[("cam_T_cam", 0, f_i)] = inputs[('pose',0,f_i)]
+                    if ("pose",0,f_i) in inputs:
+                        outputs[("cam_T_cam", 0, f_i)] = inputs[('pose',0,f_i)]
 
                     #print("cam_T_cam : 0 ",f_i)
                        # print(outputs[("cam_T_cam", 0 ,f_i)])

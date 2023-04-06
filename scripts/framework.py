@@ -2,7 +2,7 @@ import os
 import sys
 import glob
 
-ITERATIONS = 5
+ITERATIONS = 1
 DOCKER_CONTAINER = 'trusting_volhard'
 MONODEPTH_ROOT_DIR = '~/Documents/ntu/monodepth2'
 LOG_DIR = '~/Documents/ntu/results'
@@ -54,13 +54,13 @@ def train_monodepth():
         print("Training Monodepth2")
 
         cmd ='CUDA_VISIBLE_DEVICES=0 python ' +\
-                MONODEPTH_ROOT_DIR + '/train.py\
+                MONODEPTH_ROOT_DIR + '/train_depth_ref.py\
                 --model_name mono_model\
                 --log_dir ' + LOG_DIR +' --data_path\
                 ' + DATASET
 
         print("Train command :",cmd)
-        #os.system(cmd)
+        os.system(cmd)
 
 
 def test_monodepth(pose_net):
@@ -120,11 +120,11 @@ if __name__ == "__main__":
                     or path[-2]=="image_03"):
 
                 path = "/".join(path)
-                print("Itearation input path: ",path)
+                # print("Itearation input path: ",path)
 
                 #assoc(path)
 
-                run_orbslam(path)
+                #run_orbslam(path)
 
         print("===================Training with ORBSLAM pose data :",i)
         train_monodepth()
